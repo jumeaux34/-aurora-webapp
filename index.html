@@ -6,96 +6,89 @@
   <title>Aurora Crypto Bot</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-700 text-gray-100">
-  <div class="max-w-3xl mx-auto p-6">
+<body class="min-h-screen bg-gradient-to-br from-purple-800 via-indigo-700 to-orange-500 text-white">
+  <div class="max-w-4xl mx-auto p-6">
     <!-- Header -->
     <header class="flex items-center justify-center mb-8">
-      <img src="https://jumeaux34.github.io/-aurora-webapp/logo.png" alt="Aurora Logo" class="h-14 mr-4">
-      <h1 class="text-4xl font-extrabold">AuroraCryptoBot</h1>
+      <img src="logo.png" alt="Aurora Logo" class="h-16 mr-4">
+      <h1 class="text-5xl font-extrabold tracking-tight">AuroraCryptoBot</h1>
     </header>
 
     <!-- Navigation Tabs -->
-    <nav class="flex justify-around bg-white/10 backdrop-blur-sm rounded-2xl p-2 mb-6 shadow-lg">
-      <button id="tab-wallet" class="px-4 py-2 rounded-lg hover:bg-white/20 transition-colors" data-tab="wallet">Кошелёк</button>
-      <button id="tab-exchange" class="px-4 py-2 rounded-lg hover:bg-white/20 transition-colors" data-tab="exchange">Биржа</button>
-      <button id="tab-p2p" class="px-4 py-2 rounded-lg hover:bg-white/20 transition-colors" data-tab="p2p">P2P</button>
-      <button id="tab-account" class="px-4 py-2 rounded-lg hover:bg-white/20 transition-colors" data-tab="account">Аккаунт</button>
+    <nav class="flex justify-around bg-white/20 backdrop-blur-lg rounded-full p-2 mb-8 shadow-lg">
+      <button id="tab-wallet" data-tab="wallet" class="px-6 py-3 rounded-full hover:bg-white/30 transition-colors">Кошелёк</button>
+      <button id="tab-exchange" data-tab="exchange" class="px-6 py-3 rounded-full hover:bg-white/30 transition-colors">Биржа</button>
+      <button id="tab-p2p" data-tab="p2p" class="px-6 py-3 rounded-full hover:bg-white/30 transition-colors">P2P</button>
+      <button id="tab-account" data-tab="account" class="px-6 py-3 rounded-full hover:bg-white/30 transition-colors">Аккаунт</button>
     </nav>
 
     <!-- Sections -->
-    <section id="wallet" class="tab-content space-y-6">
-      <!-- Balance Card -->
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
-        <h2 class="text-2xl font-semibold mb-4">Баланс</h2>
-        <pre id="balance-list" class="whitespace-pre-wrap text-lg">Загрузка...</pre>
-      </div>
-      <!-- Deposit Card -->
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
-        <h2 class="text-2xl font-semibold mb-4">Пополнить</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block mb-1">Офис:</label>
-            <select id="deposit-office" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700">
-              <option value="moscow">Москва</option>
-              <option value="spb">Санкт-Петербург</option>
-            </select>
-          </div>
-          <div>
-            <label class="block mb-1">Сумма:</label>
-            <input type="number" id="deposit-amount" placeholder="1000" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700">
-          </div>
-          <button id="deposit-send" class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg text-xl font-bold hover:from-purple-600 hover:to-indigo-600 transition">Отправить заявку</button>
+    <!-- Wallet -->
+    <section id="wallet" class="tab-content space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold mb-4">Баланс</h2>
+          <pre id="balance-list" class="whitespace-pre-wrap text-lg">BTC: 0.00\nUSDT: 0.00</pre>
         </div>
-      </div>
-      <!-- Withdraw Card -->
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
-        <h2 class="text-2xl font-semibold mb-2">Вывод</h2>
-        <p>Функция в разработке.</p>
+        <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold mb-4">Пополнить</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block mb-1">Офис</label>
+              <select id="deposit-office" class="w-full p-2 rounded-lg bg-transparent border border-white/50">
+                <option value="moscow">Москва</option>
+                <option value="spb">Санкт-Петербург</option>
+              </select>
+            </div>
+            <div>
+              <label class="block mb-1">Сумма</label>
+              <input type="number" id="deposit-amount" placeholder="1000" class="w-full p-2 rounded-lg bg-transparent border border-white/50">
+            </div>
+            <button id="deposit-send" class="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full text-xl font-bold hover:opacity-90 transition">Отправить заявку</button>
+          </div>
+        </div>
+        <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold mb-4">Вывод</h2>
+          <p>Функция в разработке.</p>
+        </div>
       </div>
     </section>
 
-    <section id="exchange" class="tab-content hidden space-y-6">
-      <!-- Rate Card -->
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
+    <!-- Exchange -->
+    <section id="exchange" class="tab-content hidden space-y-8">
+      <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
         <h2 class="text-2xl font-semibold mb-4">Курс криптовалют</h2>
-        <label class="block mb-2">Монета (ID CoinGecko):</label>
-        <input type="text" id="rate-symbol" placeholder="bitcoin" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 mb-4">
-        <button id="rate-button" class="w-full py-2 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition">Узнать курс</button>
+        <div class="flex gap-4">
+          <input type="text" id="rate-symbol" placeholder="bitcoin" class="flex-1 p-2 rounded-lg bg-transparent border border-white/50">
+          <button id="rate-button" class="px-6 py-2 bg-purple-600 rounded-full font-semibold hover:bg-purple-700 transition">Узнать</button>
+        </div>
         <p id="rate-result" class="mt-4 text-lg"></p>
       </div>
-      <!-- Exchange Card -->
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
+      <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
         <h2 class="text-2xl font-semibold mb-4">Обмен</h2>
-        <div class="space-y-3">
-          <div>
-            <label>Из:</label>
-            <input type="text" id="ex-from" placeholder="bitcoin" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700">
-          </div>
-          <div>
-            <label>В:</label>
-            <input type="text" id="ex-to" placeholder="tether" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700">
-          </div>
-          <div>
-            <label>Сумма:</label>
-            <input type="number" id="ex-amount" placeholder="0.5" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700">
-          </div>
-          <button id="ex-button" class="w-full py-2 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition">Рассчитать обмен</button>
-          <p id="ex-result" class="mt-4 text-lg"></p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input type="text" id="ex-from" placeholder="from (bitcoin)" class="p-2 rounded-lg bg-transparent border border-white/50">
+          <input type="text" id="ex-to" placeholder="to (tether)" class="p-2 rounded-lg bg-transparent border border-white/50">
+          <input type="number" id="ex-amount" placeholder="0.5" class="p-2 rounded-lg bg-transparent border border-white/50">
         </div>
+        <button id="ex-button" class="mt-4 w-full py-2 bg-purple-600 rounded-full font-semibold hover:bg-purple-700 transition">Рассчитать обмен</button>
+        <p id="ex-result" class="mt-4 text-lg"></p>
       </div>
     </section>
 
+    <!-- P2P -->
     <section id="p2p" class="tab-content hidden">
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
-        <h2 class="text-2xl font-semibold mb-2">P2P-платформа</h2>
-        <p>Список офферов в разработке.</p>
+      <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4">P2P-платформа</h2>
+        <p>В разработке.</p>
       </div>
     </section>
 
+    <!-- Account -->
     <section id="account" class="tab-content hidden">
-      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl shadow-md">
-        <h2 class="text-2xl font-semibold mb-2">Аккаунт</h2>
-        <p>Управление профилем в разработке.</p>
+      <div class="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4">Аккаунт</h2>
+        <p>В разработке.</p>
       </div>
     </section>
   </div>
@@ -105,28 +98,25 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Tab navigation
+    // Навигация табов
     document.querySelectorAll('button[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
-        document.querySelectorAll('button[data-tab]').forEach(b => b.classList.remove('bg-white/20'));
+        document.querySelectorAll('button[data-tab]').forEach(b => b.classList.remove('bg-white/30'));
         const tab = btn.dataset.tab;
         document.getElementById(tab).classList.remove('hidden');
-        btn.classList.add('bg-white/20');
+        btn.classList.add('bg-white/30');
       });
     });
 
-    // Placeholder balance
-    document.getElementById('balance-list').innerText = 'BTC: 0.00\nUSDT: 0.00';
-
-    // Deposit via WebApp
+    // Заказ пополнения
     document.getElementById('deposit-send').onclick = () => {
       const office = document.getElementById('deposit-office').value;
       const amount = document.getElementById('deposit-amount').value;
       tg.sendData(JSON.stringify({ action: 'deposit', office, amount }));
     };
 
-    // Rate
+    // Получение курса
     document.getElementById('rate-button').onclick = async () => {
       const sym = document.getElementById('rate-symbol').value;
       const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${sym}&vs_currencies=usd`);
@@ -134,14 +124,14 @@
       document.getElementById('rate-result').innerText = data[sym]?.usd ? `💰 ${sym.toUpperCase()} = ${data[sym].usd} USD` : 'Монета не найдена';
     };
 
-    // Exchange
+    // Рассчет обмена
     document.getElementById('ex-button').onclick = async () => {
       const f = document.getElementById('ex-from').value;
       const t = document.getElementById('ex-to').value;
       const a = parseFloat(document.getElementById('ex-amount').value);
       const p1 = await (await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${f}&vs_currencies=usd`)).json();
       const p2 = await (await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${t}&vs_currencies=usd`)).json();
-      if(!p1[f]?.usd || !p2[t]?.usd) { document.getElementById('ex-result').innerText = 'Ошибка символов'; return; }
+      if (!p1[f]?.usd || !p2[t]?.usd) { document.getElementById('ex-result').innerText = 'Ошибка символов'; return; }
       const res = a * p1[f].usd / p2[t].usd;
       document.getElementById('ex-result').innerText = `${a} ${f.toUpperCase()} ≈ ${res.toFixed(6)} ${t.toUpperCase()}`;
     };
