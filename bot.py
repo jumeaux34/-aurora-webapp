@@ -6,6 +6,7 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     filters, ContextTypes
 )
+import os
 import requests
 import json
 from collections import defaultdict
@@ -14,9 +15,13 @@ from collections import defaultdict
 user_balances: dict[int, dict[str, float]] = defaultdict(lambda: defaultdict(float))
 
 # --- Конфигурация ---
-ADMIN_CHAT_ID = 7736404289
-BOT_TOKEN = "7612093789:AAFmp7EeR9iIEguG3zG6_6ImrzPd5L30c9w"
-WEBAPP_URL = "https://jumeaux34.github.io/aurora-webapp/index.html"  # ваш главный WebApp
+# Читаем чувствительные данные из переменных окружения
+ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0"))
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEBAPP_URL = os.environ.get(
+    "WEBAPP_URL",
+    "https://jumeaux34.github.io/aurora-webapp/index.html",
+)  # адрес WebApp
 
 # --- Вспомогательная функция для получения курса ---
 def get_price(symbol: str) -> float | None:
