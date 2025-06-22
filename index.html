@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuroraCryptoBot WebApp</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f7; }
+    header { background: #1e1e2f; color: #fff; padding: 1rem; text-align: center; }
+    nav { display: flex; justify-content: space-around; background: #2c2c3e; }
+    nav button { flex:1; padding: 1rem; border:none; background:transparent; color:#bbb; cursor:pointer; }
+    nav button.active { background: #3a3a4e; color:#fff; }
+    section { padding: 1rem; display: none; }
+    section.active { display:block; }
+    .card { background: #fff; padding:1rem; margin-bottom:1rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+    .button { padding:0.6rem 1.2rem; background:#4a90e2; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    input, select { padding:0.6rem; width:100%; margin-top:0.5rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AuroraCryptoBot</h1>
+  </header>
+  <nav>
+    <button id="tab-wallet">Кошелёк</button>
+    <button id="tab-exchange">Биржа</button>
+    <button id="tab-p2p">P2P</button>
+    <button id="tab-account">Аккаунт</button>
+  </nav>
+
+  <!-- Wallet -->
+  <section id="wallet" class="active">
+    <div class="card">
+      <h2>Баланс</h2>
+      <div id="balance-list">Загрузка...</div>
+    </div>
+    <div class="card">
+      <h2>Пополнить</h2>
+      <label>Офис:
+        <select id="deposit-office">
+          <option value="moscow">Москва</option>
+          <option value="spb">Санкт-Петербург</option>
+        </select>
+      </label>
+      <label>Сумма:</n        <input type="number" id="deposit-amount" placeholder="1000" />
+      </label>
+      <button id="deposit-send" class="button">Отправить заявку</button>
+    </div>
+    <div class="card">
+      <h2>Вывод</h2>
+      <p>Функция в разработке.</p>
+    </div>
+  </section>
+
+  <!-- Exchange -->
+  <section id="exchange">
+    <div class="card">
+      <h2>Курс криптовалют</h2>
+      <label>Монета (id CoinGecko):
+        <input type="text" id="rate-symbol" placeholder="bitcoin" />
+      </label>
+      <button id="rate-button" class="button">Узнать курс</button>
+      <p id="rate-result"></p>
+    </div>
+    <div class="card">
+      <h2>Обмен</h2>
+      <label>Из:</label><input type="text" id="ex-from" placeholder="bitcoin" />
+      <label>В:</label><input type="text" id="ex-to" placeholder="tether" />
+      <label>Сумма:</label><input type="number" id="ex-amount" placeholder="0.5" />
+      <button id="ex-button" class="button">Рассчитать обмен</button>
+      <p id="ex-result"></p>
+    </div>
+  </section>
+
+  <!-- P2P -->
+  <section id="p2p">
+    <div class="card">
+      <h2>P2P-платформа</h2>
+      <p>Список офферов в разработке.</p>
+    </div>
+  </section>
+
+  <!-- Account -->
+  <section id="account">
+    <div class="card">
+      <h2>Аккаунт</h2>
+      <p>Профиль и настройки в разработке.</p>
+    </div>
+  </section>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Навигация по табам
+    const tabs = ['wallet','exchange','p2p','account'];
+    tabs.forEach(id => {
+      document.getElementById('tab-'+id).onclick = () => {
+        tabs.forEach(x=>{
+          document.getElementById(x).classList.remove('active');
+          document.getElementById('tab-'+x).classList.remove('active');
+        });
+        document.getElementById(id).classList.add('active');
+        document.getElementById('tab-'+id).classList.add('active');
+      };
+    });
+
+    // Wallet balance (локально) — можно расширить через телеграм
+    document.getElementById('balance-list').innerText = '0 BTC\n0 USDT';
+
+    // Отправка заявки пополнения
+    document.getElementById('deposit-send').onclick = ()=>{
+      const office = document.getElementById('deposit-office').value;
+      const amount = document.getElementById('deposit-amount').value;
+      tg.sendData(JSON.stringify({ action: 'deposit', office, amount }));
+    };
+
+    // Узнать курс
+    document.getElementById('rate-button').onclick = async ()=>{
+      const sym = document.getElementById('rate-symbol').value;
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${sym}&vs_currencies=usd`
+      );
+      const data = await res.json();
+      document.getElementById('rate-result').innerText =
+        data[sym]?.usd ? `💰 ${sym.toUpperCase()} = ${data[sym].usd} USD` : 'Монета не найдена';
+    };
+
+    // Рассчитать обмен
+    document.getElementById('ex-button').onclick = async ()=>{
+      const f = document.getElementById('ex-from').value;
+      const t = document.getElementById('ex-to').value;
+      const a = parseFloat(document.getElementById('ex-amount').value);
+      const p1 = await (await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${f}&vs_currencies=usd`)).json();
+      const p2 = await (await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${t}&vs_currencies=usd`)).json();
+      if(!p1[f]?.usd||!p2[t]?.usd){ document.getElementById('ex-result').innerText='Ошибка символов'; return;}  
+      const res = a * p1[f].usd / p2[t].usd;
+      document.getElementById('ex-result').innerText = `${a} ${f.toUpperCase()} ≈ ${res.toFixed(6)} ${t.toUpperCase()}`;
+    };
+  </script>
+</body>
+</html>
