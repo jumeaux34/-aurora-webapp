@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Пополнение</title></head>
+<body style="font-family:sans-serif; padding:20px;">
+  <h2>Пополнение</h2>
+  <label>Офис:
+    <select id="office">
+      <option value="moscow">Москва</option>
+      <option value="spb">Санкт-Петербург</option>
+    </select>
+  </label><br>
+  <label>Сумма:
+    <input type="number" id="amount" placeholder="1000" required>
+  </label><br>
+  <button id="send">Отправить заявку</button>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    document.getElementById('send').onclick = () => {
+      const data = JSON.stringify({
+        office: document.getElementById('office').value,
+        amount: document.getElementById('amount').value
+      });
+      tg.sendData(data);
+    };
+  </script>
+</body>
+</html>
