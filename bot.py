@@ -20,7 +20,10 @@ user_balances: dict[int, dict[str, float]] = defaultdict(
 # --- Конфигурация ---
 # Читаем чувствительные данные из переменных окружения
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0"))
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+BOT_TOKEN: Final[str] = os.environ.get(
+    "BOT_TOKEN",
+    "7612093789:AAFmp7EeR9iIEguG3zG6_6ImrzPd5L30c9w",
+)
 WEBAPP_URL = os.environ.get(
     "WEBAPP_URL",
     "https://jumeaux34.github.io/aurora-webapp/index.html",
@@ -28,8 +31,6 @@ WEBAPP_URL = os.environ.get(
 ALLOWED_OFFICES: Final[set[str]] = {"moscow", "spb"}
 MAX_DEPOSIT_AMOUNT: Final[float] = 10000.0
 
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN environment variable is not set")
 
 
 # --- Вспомогательная функция для получения курса ---
