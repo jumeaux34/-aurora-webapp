@@ -32,6 +32,7 @@ ALLOWED_OFFICES: Final[set[str]] = {"moscow", "spb"}
 MAX_DEPOSIT_AMOUNT: Final[float] = 10000.0
 
 
+
 # --- Вспомогательная функция для получения курса ---
 def get_price(symbol: str) -> float | None:
     try:
