@@ -41,7 +41,7 @@
             </div>
             <div>
               <label class="block mb-1">Сумма</label>
-              <input type="number" id="deposit-amount" placeholder="1000" class="w-full p-2 rounded-lg bg-transparent border border-white/50">
+              <input type="number" id="deposit-amount" placeholder="1000" min="0.01" step="0.01" max="10000" class="w-full p-2 rounded-lg bg-transparent border border-white/50">
             </div>
             <button id="deposit-send" class="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full text-xl font-bold hover:opacity-90 transition">Отправить заявку</button>
           </div>
@@ -111,7 +111,11 @@
     // Заказ пополнения
     document.getElementById('deposit-send').onclick = () => {
       const office = document.getElementById('deposit-office').value;
-      const amount = document.getElementById('deposit-amount').value;
+      const amount = parseFloat(document.getElementById('deposit-amount').value);
+      if (!amount || amount <= 0 || amount > 10000) {
+        alert('Некорректная сумма');
+        return;
+      }
       tg.sendData(JSON.stringify({ action: 'deposit', office, amount }));
     };
 
