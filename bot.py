@@ -1,140 +1,467 @@
-from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup,
-    WebAppInfo
-)
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler,
-    filters, ContextTypes
-)
+# 💱 UfaSwap — Telegram-бот для заявок (Python 3.13)
+# Версия 3.1 — стабильная и финальная
+# ✅ Исправлен подсчёт суммы в отчёте
+# ✅ Добавлено сообщение клиенту после проведения
+# ✅ Исправлена ошибка Message is not modified
+# ✅ Добавлена команда /report (только для администратора)
+# ✅ Защита от повторных нажатий "Проведена"/"Не проведена"
+# ✅ Ежедневный автоотчёт + ручной отчёт
+# ✅ Кнопка "Курс" — биржа +0.85% с кэш-фолбэком
+
 import os
-import requests
+import asyncio
+import logging
+import time
+import traceback
+import uuid
+import csv
 import json
-from collections import defaultdict
-from typing import Final
+from datetime import datetime
+from dotenv import load_dotenv
+import requests
 
-# --- Хранилище балансов пользователей: chat_id → данные ---
-user_balances: dict[int, dict[str, float]] = defaultdict(
-    lambda: defaultdict(float)
+from telegram import (
+    Bot,
+    Update,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
 )
+from telegram.constants import ParseMode
 
-# --- Конфигурация ---
-# Читаем чувствительные данные из переменных окружения
-ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", "0"))
-BOT_TOKEN: Final[str] = os.environ.get(
-    "BOT_TOKEN",
-    "7612093789:AAFmp7EeR9iIEguG3zG6_6ImrzPd5L30c9w",
+# ───────────────────────────────
+# ⚙️ Настройки окружения
+# ───────────────────────────────
+load_dotenv()
+os.makedirs("logs", exist_ok=True)
+
+# 🔇 Настройка логов
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
 )
-WEBAPP_URL = os.environ.get(
-    "WEBAPP_URL",
-    "https://jumeaux34.github.io/aurora-webapp/index.html",
-)  # адрес WebApp
-ALLOWED_OFFICES: Final[set[str]] = {"moscow", "spb"}
-MAX_DEPOSIT_AMOUNT: Final[float] = 10000.0
-# --- Вспомогательная функция для получения курса ---
-def get_price(symbol: str) -> float | None:
-    try:
-        r = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price",
-            params={"ids": symbol.lower(), "vs_currencies": "usd"},
-            timeout=5,
-        )
-        r.raise_for_status()
-        data = r.json()
-        return data.get(symbol.lower(), {}).get("usd")
-    except requests.RequestException:
-        return None
+logger = logging.getLogger("UfaSwap")
 
+file_handler = logging.FileHandler("logs/errors.log", encoding="utf-8")
+file_handler.setLevel(logging.ERROR)
+file_handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
+logger.addHandler(file_handler)
 
-# --- /start: открывает весь интерфейс через WebApp ---
-async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    kb = [[InlineKeyboardButton(
-        "🚀 Открыть Aurora App",
-        web_app=WebAppInfo(url=WEBAPP_URL)
-    )]]
-    await update.message.reply_text(
-        (
-            "Добро пожаловать в AuroraCryptoBot!\n"
-            "Используйте кнопку ниже, чтобы загрузить полностью веб-интерфейс:"
-        ),
-        reply_markup=InlineKeyboardMarkup(kb),
-    )
+# ───────────────────────────────
+# 🔑 Основные параметры
+# ───────────────────────────────
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))
+ALLOWED_OFFICES = [x.strip() for x in os.getenv("ALLOWED_OFFICES", "Уфа, Верхнеторговая 4").split(";")]
+MIN_DEPOSIT_AMOUNT = float(os.getenv("MIN_DEPOSIT_AMOUNT", "50000"))
+MAX_DEPOSIT_AMOUNT = float(os.getenv("MAX_DEPOSIT_AMOUNT", "20000000"))
+USER_COOLDOWN_SEC = 60
 
+# Курс
+RATE_MARKUP_PCT = float(os.getenv("RATE_MARKUP_PCT", "0.85"))  # +0.85%
+RATE_CACHE_FILE = "logs/last_rate.json"
+RATE_CACHE_MAX_AGE_SEC = 60 * 60  # кэш валиден 60 минут
+ABCEX_URL = "https://gateway.abcex.io/api/v1/markets/price-dynamics"
+MARKET_CODE = "USDTRUB"
 
-# --- Приём данных из WebApp (JSON) ---
-async def webapp_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    payload = json.loads(update.message.web_app_data.data)
-    action = payload.get("action")
-    user_id = update.effective_chat.id
+if not BOT_TOKEN or not ADMIN_CHAT_ID:
+    raise RuntimeError("❌ Не указан BOT_TOKEN или ADMIN_CHAT_ID в .env")
 
-    # Пример обработки: action=deposit, office, amount
-    if action == "deposit":
-        office = payload.get("office")
-        amount = payload.get("amount")
+bot = Bot(token=BOT_TOKEN)
+user_state = {}
+last_submission = {}
+
+# ───────────────────────────────
+# 🧩 Утилиты
+# ───────────────────────────────
+def fmt_rub(value: float) -> str:
+    return f"{value:,.2f}".replace(",", " ") + " ₽"
+
+def generate_order_id() -> str:
+    return uuid.uuid4().hex[:8].upper()
+
+def escape_md(text: str) -> str:
+    if not text:
+        return ""
+    escape_chars = "_*[]()~`>#+-=|{}.!<>"
+    for ch in escape_chars:
+        text = text.replace(ch, f"\\{ch}")
+    return text
+
+def save_order_to_csv(order_id: str, user_id: int, office: str, amount: float):
+    """Сохраняет заявку в logs/orders.csv"""
+    file_path = "logs/orders.csv"
+    file_exists = os.path.isfile(file_path)
+    with open(file_path, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=";")
+        if not file_exists:
+            writer.writerow(["Дата и время", "ID заявки", "ID пользователя", "Офис", "Сумма"])
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            order_id,
+            user_id,
+            office,
+            str(int(amount)),  # сохраняем как число
+        ])
+
+async def safe_send_message(chat_id, text, parse_mode=None, reply_markup=None):
+    """Надёжная отправка с 3 попытками"""
+    for attempt in range(3):
         try:
-            amount_value = float(amount)
-        except (TypeError, ValueError):
-            await update.message.reply_text("Некорректная сумма.")
-            return
-        if amount_value <= 0 or amount_value > MAX_DEPOSIT_AMOUNT:
-            await update.message.reply_text("Некорректная сумма.")
-            return
-        if office not in ALLOWED_OFFICES:
-            await update.message.reply_text("Неизвестный офис.")
+            return await bot.send_message(
+                chat_id=chat_id,
+                text=text,
+                parse_mode=parse_mode,
+                reply_markup=reply_markup,
+                disable_web_page_preview=True,
+            )
+        except Exception as e:
+            if attempt < 2:
+                await asyncio.sleep(1.5)
+            else:
+                logger.error(f"Ошибка при отправке: {e}")
+
+# ───────────────────────────────
+# 📡 Курс: запрос + кэш-фолбэк
+# ───────────────────────────────
+def _load_cached_rate():
+    try:
+        if not os.path.exists(RATE_CACHE_FILE):
+            return None
+        with open(RATE_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if time.time() - data.get("ts", 0) <= RATE_CACHE_MAX_AGE_SEC:
+            return data
+    except Exception as e:
+        logger.warning(f"Не удалось прочитать кэш курса: {e}")
+    return None
+
+def _save_cached_rate(base_price: float, final_price: float):
+    try:
+        with open(RATE_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump({"ts": time.time(), "base": base_price, "final": final_price}, f, ensure_ascii=False)
+    except Exception as e:
+        logger.warning(f"Не удалось сохранить кэш курса: {e}")
+
+def get_usd_rub_with_markup() -> tuple[float | None, str]:
+    """
+    Возвращает (курс_с_наценкой, источник), где источник: 'online' или 'cache'.
+    """
+    headers = {"accept": "application/json"}
+
+    # Несколько попыток запроса в случае 5xx
+    for attempt in range(3):
+        try:
+            resp = requests.get(ABCEX_URL, headers=headers, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list):
+                    for item in data:
+                        if item.get("marketId") == MARKET_CODE:
+                            base_price = float(item.get("price"))
+                            final_price = round(base_price * (1 + RATE_MARKUP_PCT / 100), 2)
+                            _save_cached_rate(base_price, final_price)
+                            return final_price, "online"
+                    logger.error("В ответе ABCEX нет marketId=USDTRUB")
+                    break
+                else:
+                    logger.error(f"Неожиданный формат ответа: {data}")
+                    break
+            else:
+                logger.error(f"ABCEX HTTP {resp.status_code}: {resp.text}")
+                if 500 <= resp.status_code < 600 and attempt < 2:
+                    time.sleep(0.6)
+                    continue
+                break
+        except Exception as e:
+            logger.error(f"Ошибка запроса ABCEX: {e}")
+            if attempt < 2:
+                time.sleep(0.6)
+                continue
+            break
+
+    cached = _load_cached_rate()
+    if cached:
+        return float(cached["final"]), "cache"
+    return None, ""
+
+# ───────────────────────────────
+# 📊 Отчёты
+# ───────────────────────────────
+def get_daily_report() -> str:
+    file_path = "logs/orders.csv"
+    if not os.path.exists(file_path):
+        return "📂 Отчёт недоступен: файл логов отсутствует."
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    total_sum = 0
+    total_count = 0
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        next(f, None)
+        for line in f:
+            if line.startswith(today):
+                parts = line.strip().split(";")
+                if len(parts) >= 5:
+                    try:
+                        total_sum += float(parts[4])
+                        total_count += 1
+                    except ValueError:
+                        pass
+
+    if total_count == 0:
+        return f"📅 *Отчёт за {today}*\n\nПока нет проведённых заявок."
+
+    return (
+        f"📅 *Отчёт за {today}*\n\n"
+        f"Количество заявок: *{total_count}*\n"
+        f"Общая сумма: *{fmt_rub(total_sum)}*\n\n"
+        "✅ Отчёт включает только проведённые заявки."
+    )
+
+async def send_daily_report():
+    await safe_send_message(ADMIN_CHAT_ID, get_daily_report(), parse_mode="Markdown")
+
+# ───────────────────────────────
+# 💬 Основная логика
+# ───────────────────────────────
+async def handle_update(update: Update):
+    # === Callback (для менеджера)
+    if update.callback_query:
+        query = update.callback_query
+        data = query.data
+        message = query.message
+
+        if query.from_user.id != ADMIN_CHAT_ID:
+            await query.answer("🚫 У вас нет прав для этого действия.", show_alert=True)
             return
 
-        # Уведомляем администратора
-        await context.bot.send_message(
-            chat_id=ADMIN_CHAT_ID,
-            text=(
-                f"🔔 Новая заявка на пополнение WebApp:\n"
-                f"Пользователь: {user_id}\n"
-                f"Офис: {office}\n"
-                f"Сумма: {amount_value}"
+        order_id = data.split(":")[1]
+
+        if data.startswith("done:"):
+            try:
+                await message.edit_text(f"✅ Заявка {order_id} проведена.")
+                await query.answer("Заявка проведена ✅")
+            except Exception as e:
+                if "Message is not modified" in str(e):
+                    logger.warning("⚠️ Повторное подтверждение — уже проведена.")
+                else:
+                    logger.error(e)
+                return
+
+            # парсим данные из исходного текста заявки
+            lines = message.text.split("\n")
+            user_line = next((l for l in lines if "👤" in l), "")
+            office_line = next((l for l in lines if "🏢" in l), "")
+            amount_line = next((l for l in lines if "💰" in l), "")
+
+            try:
+                user_id = int(user_line.split(":")[1].strip().split("]")[0].replace("[", ""))
+            except Exception:
+                user_id = 0
+
+            office = office_line.split(":", 1)[1].strip() if ":" in office_line else "?"
+            amount_text = amount_line.split(":", 1)[1].strip() if ":" in amount_line else "0"
+            try:
+                amount = float(amount_text.replace("₽", "").replace(" ", ""))
+            except ValueError:
+                amount = 0
+
+            save_order_to_csv(order_id, user_id, office, amount)
+
+            # 💬 Сообщение клиенту
+            if user_id:
+                await safe_send_message(
+                    user_id,
+                    "✅ Ваша заявка успешно проведена!\n\n"
+                    "Спасибо, что выбрали *Ufa Swap!*\n"
+                    "Ждём вас снова!",
+                    parse_mode="Markdown",
+                )
+            return
+
+        elif data.startswith("cancel:"):
+            try:
+                await message.edit_text(f"❌ Заявка {order_id} не проведена.")
+                await query.answer("Заявка отменена ❌")
+            except Exception as e:
+                if "Message is not modified" not in str(e):
+                    logger.error(e)
+            return
+
+    # === Обычные сообщения
+    if not update.message:
+        return
+
+    user_id = update.message.chat_id
+    text = (update.message.text or "").strip()
+
+    if update.message.chat.type != "private":
+        await safe_send_message(user_id, "⚠️ Этот бот работает только в личных сообщениях.")
+        return
+
+    # === Команда /report
+    if text.lower() == "/report":
+        if user_id != ADMIN_CHAT_ID:
+            await safe_send_message(user_id, "⛔ У вас нет прав для этой команды.")
+            return
+        await safe_send_message(user_id, get_daily_report(), parse_mode="Markdown")
+        return
+
+    # === Курс биржи + 0.85%
+    if text.lower() in ("курс", "💱 курс", "/rate", "/kurs", "курс обмена"):
+        await safe_send_message(user_id, "Получаю актуальный курс, секунду…")
+        rate, source = get_usd_rub_with_markup()
+        if rate is None:
+            await safe_send_message(user_id, "Не удалось получить курс. Повторите попытку позже.")
+            return
+        suffix = " (онлайн)" if source == "online" else " (по последнему сохранённому курсу)"
+        await safe_send_message(
+            user_id,
+            f"💱 USD/RUB: *{fmt_rub(rate)}*{suffix}\n"
+            f"Наценка: +{RATE_MARKUP_PCT:.2f}%",
+            parse_mode="Markdown",
+        )
+        return
+
+    # === /start
+    if text in ("/start", "🔄 Новая заявка"):
+        kb = [[KeyboardButton("🚀 Начать")], [KeyboardButton("Курс")]]
+        await safe_send_message(
+            user_id,
+            (
+                "👋 *Добро пожаловать в Ufa Swap!*\n\n"
+                "💱 Здесь вы можете оставить заявку на пополнение или обмен.\n"
+                "🕓 Работаем ежедневно с 10:00 до 22:00.\n\n"
+                "Нажмите кнопку ниже, чтобы начать:"
             ),
-            reply_markup=InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton(
-                        "✉️ Связаться",
-                        url=f"tg://user?id={user_id}",
-                    )
-                ]
-            ])
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True),
         )
-        # Ответ пользователю
-        await update.message.reply_text(
-            "✅ Ваша заявка на пополнение отправлена через WebApp."
+        user_state.pop(user_id, None)
+        return
+
+    # === Выбор офиса
+    if text == "🚀 Начать":
+        kb = [[KeyboardButton(o)] for o in ALLOWED_OFFICES]
+        await safe_send_message(
+            user_id,
+            "🏢 *Выберите офис выдачи:*",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True),
         )
-    # Здесь можно добавить другие action: exchange, withdraw и т.д.
-    else:
-        await update.message.reply_text("⚠️ Неизвестное действие из WebApp.")
+        user_state[user_id] = {"stage": "office"}
+        return
 
+    state = user_state.get(user_id)
 
-# --- Обработчики команд (резервно) ---
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "/start — загрузить веб-интерфейс\n"
-        "/help — помощь"
-    )
-
-
-# --- Точка входа ---
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    # Команды
-    app.add_handler(CommandHandler("start", start_handler))
-    app.add_handler(CommandHandler("help", help_command))
-    # WebApp-data
-    app.add_handler(
-        MessageHandler(
-            filters.StatusUpdate.WEB_APP_DATA,
-            webapp_handler,
+    # === Этап выбора офиса
+    if state and state.get("stage") == "office":
+        if text not in ALLOWED_OFFICES:
+            await safe_send_message(user_id, "⚠️ Пожалуйста, выберите офис из списка.")
+            return
+        state["office"] = text
+        state["stage"] = "amount"
+        await safe_send_message(
+            user_id,
+            (
+                f"💼 Офис подтверждён: *{escape_md(text)}*\n\n"
+                f"Введите сумму пополнения (от {fmt_rub(MIN_DEPOSIT_AMOUNT)} до {fmt_rub(MAX_DEPOSIT_AMOUNT)}).\n"
+                "_Пример:_ 50000"
+            ),
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove(),
         )
-    )
+        return
 
-    print("AuroraCryptoBot запущен…")
-    app.run_polling()
+    # === Этап ввода суммы
+    if state and state.get("stage") == "amount":
+        try:
+            amount = float(text.replace(" ", "").replace(",", "."))
+        except ValueError:
+            await safe_send_message(user_id, "⚠️ Введите корректную сумму.")
+            return
+        if not (MIN_DEPOSIT_AMOUNT <= amount <= MAX_DEPOSIT_AMOUNT):
+            await safe_send_message(user_id, "⚠️ Сумма вне допустимого диапазона.")
+            return
 
+        now = time.time()
+        if now - last_submission.get(user_id, 0) < USER_COOLDOWN_SEC:
+            wait = int(USER_COOLDOWN_SEC - (now - last_submission[user_id]))
+            await safe_send_message(user_id, f"⏳ Подождите {wait} секунд.")
+            return
 
+        office = state["office"]
+        order_id = generate_order_id()
+
+        manager_text = (
+            f"🚨 *Новая заявка Ufa Swap*\n\n"
+            f"🆔 Номер заявки: *{order_id}*\n"
+            f"👤 Пользователь: [{user_id}](tg://user?id={user_id})\n"
+            f"🏢 Офис: *{escape_md(office)}*\n"
+            f"💰 Сумма: *{fmt_rub(amount)}*"
+        )
+
+        kb_admin = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📞 Связаться с клиентом", url=f"tg://user?id={user_id}")],
+            [
+                InlineKeyboardButton("✅ Проведена", callback_data=f"done:{order_id}"),
+                InlineKeyboardButton("❌ Не проведена", callback_data=f"cancel:{order_id}")
+            ]
+        ])
+
+        await safe_send_message(ADMIN_CHAT_ID, manager_text, "Markdown", kb_admin)
+        kb_user = ReplyKeyboardMarkup([[KeyboardButton("🔄 Новая заявка")]], resize_keyboard=True)
+        await safe_send_message(
+            user_id,
+            "✅ Ваша заявка отправлена! Менеджер получил уведомление.",
+            reply_markup=kb_user
+        )
+
+        last_submission[user_id] = now
+        user_state.pop(user_id, None)
+        return
+
+    await safe_send_message(user_id, "Введите /start для начала работы.")
+
+# ───────────────────────────────
+# 🚀 Основной цикл polling + автоотчёт
+# ───────────────────────────────
+async def main():
+    print("✅ UfaSwapBot запущен и ожидает заявки...")
+    offset = None
+    last_report_date = None
+
+    while True:
+        try:
+            updates = await bot.get_updates(offset=offset, timeout=30)
+            for upd in updates:
+                await handle_update(upd)
+                offset = upd.update_id + 1
+
+            now = datetime.now()
+            if last_report_date != now.date() and now.hour >= 22:
+                await send_daily_report()
+                last_report_date = now.date()
+
+        except Exception as e:
+            logger.exception(f"Ошибка polling: {e}")
+            await asyncio.sleep(2)
+
+# ───────────────────────────────
+# 🔁 Перезапуск при сбоях
+# ───────────────────────────────
 if __name__ == "__main__":
-    main()
+    while True:
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            print("\n🛑 Бот остановлен вручную.")
+            break
+        except Exception:
+            traceback.print_exc()
+            print("♻️ Перезапуск через 10 секунд...")
+            time.sleep(10)
+            continue
