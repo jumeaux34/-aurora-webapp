@@ -16,6 +16,7 @@ import traceback
 import uuid
 import csv
 import json
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from dotenv import load_dotenv
 import requests
@@ -58,16 +59,20 @@ ALLOWED_OFFICES = [x.strip() for x in os.getenv("ALLOWED_OFFICES", "Уфа, Ве
 MIN_DEPOSIT_AMOUNT = float(os.getenv("MIN_DEPOSIT_AMOUNT", "50000"))
 MAX_DEPOSIT_AMOUNT = float(os.getenv("MAX_DEPOSIT_AMOUNT", "20000000"))
 USER_COOLDOWN_SEC = 60
+ABCEX_API_KEY = os.getenv("ABCEX_API_KEY")
 
 # Курс
 RATE_MARKUP_PCT = float(os.getenv("RATE_MARKUP_PCT", "0.85"))  # +0.85%
 RATE_CACHE_FILE = "logs/last_rate.json"
 RATE_CACHE_MAX_AGE_SEC = 60 * 60  # кэш валиден 60 минут
-ABCEX_URL = "https://gateway.abcex.io/api/v1/markets/price-dynamics"
-MARKET_CODE = "USDTRUB"
+ABCEX_URL = "https://gateway.abcex.io/api/v2/exchange/public/instrument/rates"
+MARKET_CODE = "BTCUSDT"
 
 if not BOT_TOKEN or not ADMIN_CHAT_ID:
     raise RuntimeError("❌ Не указан BOT_TOKEN или ADMIN_CHAT_ID в .env")
+
+if not ABCEX_API_KEY:
+    logger.warning("⚠️ ABCEX_API_KEY не указан в .env - запросы к API могут не работать")
 
 bot = Bot(token=BOT_TOKEN)
 user_state = {}
@@ -145,29 +150,69 @@ def _save_cached_rate(base_price: float, final_price: float):
     except Exception as e:
         logger.warning(f"Не удалось сохранить кэш курса: {e}")
 
-def get_usd_rub_with_markup() -> tuple[float | None, str]:
+def get_usd_rub_with_markup() -> tuple[dict | None, str]:
     """
-    Возвращает (курс_с_наценкой, источник), где источник: 'online' или 'cache'.
+    Возвращает ({buy_price, sell_price}, источник), где источник: 'online' или 'cache'.
     """
-    headers = {"accept": "application/json"}
+    headers = {"accept": "application/xml"}
+    # if ABCEX_API_KEY:
+    #     headers["Authorization"] = f"Bearer {ABCEX_API_KEY}"
+    
+    # Логирование запроса
+    logger.info(f"🔍 Отправляем запрос к ABCEX API:")
+    logger.info(f"   URL: {ABCEX_URL}")
+    logger.info(f"   Headers: {headers}")
+    logger.info(f"   Timeout: 5 сек")
 
     # Несколько попыток запроса в случае 5xx
     for attempt in range(3):
         try:
+            logger.info(f"   Попытка #{attempt + 1}/3")
             resp = requests.get(ABCEX_URL, headers=headers, timeout=5)
+            logger.info(f"   Ответ: HTTP {resp.status_code}")
+            logger.info(f"   Тело ответа: {resp.text[:500]}...")
             if resp.status_code == 200:
-                data = resp.json()
-                if isinstance(data, list):
-                    for item in data:
-                        if item.get("marketId") == MARKET_CODE:
-                            base_price = float(item.get("price"))
-                            final_price = round(base_price * (1 + RATE_MARKUP_PCT / 100), 2)
-                            _save_cached_rate(base_price, final_price)
-                            return final_price, "online"
-                    logger.error("В ответе ABCEX нет marketId=USDTRUB")
-                    break
-                else:
-                    logger.error(f"Неожиданный формат ответа: {data}")
+                # Парсинг XML
+                try:
+                    root = ET.fromstring(resp.text)
+                    logger.info(f"   Парсинг XML: корневой элемент '{root.tag}' с {len(root)} элементами")
+                    
+                    usdt_to_rub_price = None
+                    rub_to_usdt_price = None
+                    
+                    for item in root.findall('item'):
+                        from_currency = item.find('from').text if item.find('from') is not None else ""
+                        to_currency = item.find('to').text if item.find('to') is not None else ""
+                        out_price = float(item.find('out').text) if item.find('out') is not None else 0
+                        
+                        logger.info(f"   Проверяем: {from_currency} -> {to_currency}, цена: {out_price}")
+                        
+                        if from_currency == "USDT" and to_currency == "RUB":
+                            usdt_to_rub_price = out_price
+                            logger.info(f"   ✅ Найден курс USDT->RUB: {usdt_to_rub_price}")
+                        elif from_currency == "RUB" and to_currency == "USDT":
+                            rub_to_usdt_price = out_price
+                            logger.info(f"   ✅ Найден курс RUB->USDT: {rub_to_usdt_price}")
+                    
+                    if usdt_to_rub_price and rub_to_usdt_price:
+                        # Применяем наценку 0.85%
+                        # usdt_to_rub_price = цена продажи USDT (сколько RUB за 1 USDT)
+                        # rub_to_usdt_price = цена покупки USDT (сколько USDT за 1 RUB)
+                        sell_price = round(usdt_to_rub_price * (1 + RATE_MARKUP_PCT / 100), 2)  # Продажа USDT за RUB
+                        buy_price = round(1 / rub_to_usdt_price * (1 + RATE_MARKUP_PCT / 100), 2)  # Покупка USDT за RUB
+                        
+                        logger.info(f"   ✅ Курсы с наценкой: покупка={buy_price}, продажа={sell_price}")
+                        
+                        # Сохраняем в кэш
+                        _save_cached_rate(usdt_to_rub_price, buy_price)
+                        
+                        return {"buy_price": buy_price, "sell_price": sell_price}, "online"
+                    else:
+                        logger.error("Не найдены курсы USDT/RUB в XML ответе")
+                        break
+                        
+                except ET.ParseError as e:
+                    logger.error(f"Ошибка парсинга XML: {e}")
                     break
             else:
                 logger.error(f"ABCEX HTTP {resp.status_code}: {resp.text}")
@@ -182,9 +227,12 @@ def get_usd_rub_with_markup() -> tuple[float | None, str]:
                 continue
             break
 
+    logger.warning("   ❌ Все попытки запроса к ABCEX API неудачны, используем кэш")
     cached = _load_cached_rate()
     if cached:
-        return float(cached["final"]), "cache"
+        logger.info(f"   📦 Используем кэшированный курс: {cached['final']}")
+        return {"buy_price": cached['final'], "sell_price": cached['final']}, "cache"
+    logger.error("   🚫 Кэш пуст, курс недоступен")
     return None, ""
 
 # ───────────────────────────────
@@ -233,12 +281,141 @@ async def handle_update(update: Update):
         query = update.callback_query
         data = query.data
         message = query.message
+        user_id = query.from_user.id
 
-        if query.from_user.id != ADMIN_CHAT_ID:
+        # Обработка подтверждения заявки пользователем
+        if data.startswith("confirm:"):
+            order_id = data.split(":")[1]
+            state = user_state.get(user_id, {})
+            
+            if state.get("stage") == "confirmation" and state.get("order_id") == order_id:
+                # Отправляем заявку менеджеру
+                office = state["office"]
+                operation_type = state.get("operation_type", "deposit")
+                amount = state["amount"]
+                usdt_amount = state["usdt_amount"]
+                rub_amount = state.get("rub_amount", amount)
+                rates = state["rates"]
+                
+                if operation_type == "deposit":
+                    manager_text = (
+                        f"🚨 *Новая заявка на пополнение Ufa Swap*\n\n"
+                        f"🆔 Номер заявки: *{order_id}*\n"
+                        f"👤 Пользователь: [{user_id}](tg://user?id={user_id})\n"
+                        f"🏢 Офис: *{escape_md(office)}*\n"
+                        f"💵 Сумма пополнения: *{fmt_rub(rub_amount)}*\n"
+                        f"🪙 Получит USDT: *{usdt_amount:.6f} USDT*\n"
+                        f"📊 Курс покупки: *{fmt_rub(rates['buy_price'])}*"
+                    )
+                else:  # withdrawal
+                    manager_text = (
+                        f"🚨 *Новая заявка на вывод Ufa Swap*\n\n"
+                        f"🆔 Номер заявки: *{order_id}*\n"
+                        f"👤 Пользователь: [{user_id}](tg://user?id={user_id})\n"
+                        f"🏢 Офис: *{escape_md(office)}*\n"
+                        f"🪙 Количество USDT: *{usdt_amount:.6f} USDT*\n"
+                        f"💵 Получит рублей: *{fmt_rub(rub_amount)}*\n"
+                        f"📊 Курс продажи: *{fmt_rub(rates['sell_price'])}*"
+                    )
+
+                kb_admin = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📞 Связаться с клиентом", url=f"tg://user?id={user_id}")],
+                    [
+                        InlineKeyboardButton("✅ Проведена", callback_data=f"done:{order_id}"),
+                        InlineKeyboardButton("❌ Не проведена", callback_data=f"cancel:{order_id}")
+                    ]
+                ])
+
+                await safe_send_message(ADMIN_CHAT_ID, manager_text, "Markdown", kb_admin)
+                
+                # Обновляем сообщение пользователю
+                await message.edit_text(
+                    "✅ *Заявка отправлена менеджеру!*\n\n"
+                    "Менеджер получил уведомление и свяжется с вами в ближайшее время.",
+                    parse_mode="Markdown"
+                )
+                
+                # Добавляем кнопку "Новая заявка"
+                kb_user = ReplyKeyboardMarkup([[KeyboardButton("🔄 Новая заявка")]], resize_keyboard=True)
+                await safe_send_message(
+                    user_id,
+                    "Вы можете создать новую заявку, нажав кнопку ниже:",
+                    reply_markup=kb_user
+                )
+                
+                # Очищаем состояние пользователя
+                user_state.pop(user_id, None)
+                last_submission[user_id] = time.time()
+                
+                await query.answer("Заявка отправлена! ✅")
+                return
+
+        # Обработка отмены заявки пользователем
+        if data.startswith("cancel_order:"):
+            order_id = data.split(":")[1]
+            state = user_state.get(user_id, {})
+            
+            if state.get("stage") == "confirmation" and state.get("order_id") == order_id:
+                kb_user = ReplyKeyboardMarkup([[KeyboardButton("🔄 Новая заявка")]], resize_keyboard=True)
+                
+                await message.edit_text(
+                    "❌ *Заявка отменена*",
+                    parse_mode="Markdown"
+                )
+                await safe_send_message(
+                    user_id,
+                    "Вы можете создать новую заявку, нажав кнопку ниже:",
+                    reply_markup=kb_user
+                )
+                
+                # Очищаем состояние пользователя
+                user_state.pop(user_id, None)
+                
+                await query.answer("Заявка отменена ❌")
+                return
+
+        # Обработка выбора типа операции
+        if data.startswith("op_type:"):
+            parts = data.split(":")
+            if len(parts) >= 3:
+                operation_type = parts[1]  # deposit или withdrawal
+                callback_user_id = int(parts[2])
+                
+                if callback_user_id == user_id:
+                    state = user_state.get(user_id, {})
+                    if state.get("stage") == "operation_type":
+                        state["operation_type"] = operation_type
+                        state["stage"] = "amount"
+                        
+                        if operation_type == "deposit":
+                            await message.edit_text(
+                                f"💰 *Пополнение*\n\n"
+                                f"Введите сумму пополнения (от {fmt_rub(MIN_DEPOSIT_AMOUNT)} до {fmt_rub(MAX_DEPOSIT_AMOUNT)}).\n"
+                                f"_Пример:_ 50000",
+                                parse_mode="Markdown"
+                            )
+                        else:  # withdrawal
+                            await message.edit_text(
+                                f"💸 *Вывод USDT*\n\n"
+                                f"Введите количество USDT для вывода.\n"
+                                f"_Пример:_ 100.5",
+                                parse_mode="Markdown"
+                            )
+                        
+                        await query.answer("Тип операции выбран ✅")
+                        return
+
+        # Обработка callback'ов менеджера (существующая логика)
+        if user_id != ADMIN_CHAT_ID:
             await query.answer("🚫 У вас нет прав для этого действия.", show_alert=True)
             return
 
-        order_id = data.split(":")[1]
+        # Безопасно извлекаем order_id
+        try:
+            order_id = data.split(":")[1]
+        except IndexError:
+            await query.answer("Ошибка: неверный формат данных.", show_alert=True)
+            return
 
         if data.startswith("done:"):
             try:
@@ -255,7 +432,8 @@ async def handle_update(update: Update):
             lines = message.text.split("\n")
             user_line = next((l for l in lines if "👤" in l), "")
             office_line = next((l for l in lines if "🏢" in l), "")
-            amount_line = next((l for l in lines if "💰" in l), "")
+            # Ищем сумму пополнения (новый формат использует 💵)
+            amount_line = next((l for l in lines if "💵" in l or "💰" in l), "")
 
             try:
                 user_id = int(user_line.split(":")[1].strip().split("]")[0].replace("[", ""))
@@ -265,7 +443,7 @@ async def handle_update(update: Update):
             office = office_line.split(":", 1)[1].strip() if ":" in office_line else "?"
             amount_text = amount_line.split(":", 1)[1].strip() if ":" in amount_line else "0"
             try:
-                amount = float(amount_text.replace("₽", "").replace(" ", ""))
+                amount = float(amount_text.replace("₽", "").replace(" ", "").replace(" ", ""))
             except ValueError:
                 amount = 0
 
@@ -313,15 +491,15 @@ async def handle_update(update: Update):
     # === Курс биржи + 0.85%
     if text.lower() in ("курс", "💱 курс", "/rate", "/kurs", "курс обмена"):
         await safe_send_message(user_id, "Получаю актуальный курс, секунду…")
-        rate, source = get_usd_rub_with_markup()
-        if rate is None:
+        rates, source = get_usd_rub_with_markup()
+        if rates is None:
             await safe_send_message(user_id, "Не удалось получить курс. Повторите попытку позже.")
             return
         suffix = " (онлайн)" if source == "online" else " (по последнему сохранённому курсу)"
         await safe_send_message(
             user_id,
-            f"💱 USD/RUB: *{fmt_rub(rate)}*{suffix}\n"
-            f"Наценка: +{RATE_MARKUP_PCT:.2f}%",
+            f"💱 *USDT/RUB Курсы:*{suffix}\n\n"
+            f"🟢 *Покупка USDT:* {fmt_rub(rates['buy_price'])}\n",
             parse_mode="Markdown",
         )
         return
@@ -363,16 +541,20 @@ async def handle_update(update: Update):
             await safe_send_message(user_id, "⚠️ Пожалуйста, выберите офис из списка.")
             return
         state["office"] = text
-        state["stage"] = "amount"
+        state["stage"] = "operation_type"
+        
+        # Кнопки для выбора типа операции
+        kb_operation = InlineKeyboardMarkup([
+            [InlineKeyboardButton("💰 Пополнение", callback_data=f"op_type:deposit:{user_id}")],
+            [InlineKeyboardButton("💸 Вывод", callback_data=f"op_type:withdrawal:{user_id}")]
+        ])
+        
         await safe_send_message(
             user_id,
-            (
-                f"💼 Офис подтверждён: *{escape_md(text)}*\n\n"
-                f"Введите сумму пополнения (от {fmt_rub(MIN_DEPOSIT_AMOUNT)} до {fmt_rub(MAX_DEPOSIT_AMOUNT)}).\n"
-                "_Пример:_ 50000"
-            ),
+            f"💼 Офис подтверждён: *{escape_md(text)}*\n\n"
+            f"Выберите тип операции:",
             parse_mode="Markdown",
-            reply_markup=ReplyKeyboardRemove(),
+            reply_markup=kb_operation
         )
         return
 
@@ -383,9 +565,18 @@ async def handle_update(update: Update):
         except ValueError:
             await safe_send_message(user_id, "⚠️ Введите корректную сумму.")
             return
-        if not (MIN_DEPOSIT_AMOUNT <= amount <= MAX_DEPOSIT_AMOUNT):
-            await safe_send_message(user_id, "⚠️ Сумма вне допустимого диапазона.")
-            return
+        
+        operation_type = state.get("operation_type", "deposit")
+        
+        # Валидация для разных типов операций
+        if operation_type == "deposit":
+            if not (MIN_DEPOSIT_AMOUNT <= amount <= MAX_DEPOSIT_AMOUNT):
+                await safe_send_message(user_id, "⚠️ Сумма вне допустимого диапазона.")
+                return
+        else:  # withdrawal
+            if amount <= 0:
+                await safe_send_message(user_id, "⚠️ Количество USDT должно быть больше 0.")
+                return
 
         now = time.time()
         if now - last_submission.get(user_id, 0) < USER_COOLDOWN_SEC:
@@ -394,34 +585,69 @@ async def handle_update(update: Update):
             return
 
         office = state["office"]
+        
+        # Получаем актуальный курс для расчета
+        rates, source = get_usd_rub_with_markup()
+        if rates is None:
+            await safe_send_message(user_id, "❌ Не удалось получить курс. Попробуйте позже.")
+            return
+        
+        # Рассчитываем в зависимости от типа операции
+        if operation_type == "deposit":
+            # Пополнение: сумма в RUB -> количество USDT
+            usdt_amount = round(amount / rates['buy_price'], 6)
+            rub_amount = amount
+        else:
+            # Вывод: количество USDT -> сумма в RUB
+            usdt_amount = amount
+            rub_amount = round(amount * rates['sell_price'], 2)
+        
+        # Сохраняем данные заявки для подтверждения
         order_id = generate_order_id()
-
-        manager_text = (
-            f"🚨 *Новая заявка Ufa Swap*\n\n"
-            f"🆔 Номер заявки: *{order_id}*\n"
-            f"👤 Пользователь: [{user_id}](tg://user?id={user_id})\n"
-            f"🏢 Офис: *{escape_md(office)}*\n"
-            f"💰 Сумма: *{fmt_rub(amount)}*"
-        )
-
-        kb_admin = InlineKeyboardMarkup([
-            [InlineKeyboardButton("📞 Связаться с клиентом", url=f"tg://user?id={user_id}")],
+        user_state[user_id] = {
+            "stage": "confirmation",
+            "office": office,
+            "operation_type": operation_type,
+            "amount": amount,
+            "usdt_amount": usdt_amount,
+            "rub_amount": rub_amount,
+            "order_id": order_id,
+            "rates": rates
+        }
+        
+        # Показываем пользователю расчет и запрашиваем подтверждение
+        kb_confirm = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("✅ Проведена", callback_data=f"done:{order_id}"),
-                InlineKeyboardButton("❌ Не проведена", callback_data=f"cancel:{order_id}")
+                InlineKeyboardButton("✅ Подтвердить", callback_data=f"confirm:{order_id}"),
+                InlineKeyboardButton("❌ Отменить", callback_data=f"cancel_order:{order_id}")
             ]
         ])
-
-        await safe_send_message(ADMIN_CHAT_ID, manager_text, "Markdown", kb_admin)
-        kb_user = ReplyKeyboardMarkup([[KeyboardButton("🔄 Новая заявка")]], resize_keyboard=True)
+        
+        if operation_type == "deposit":
+            calculation_text = (
+                f"💰 *Расчет заявки на пополнение:*\n\n"
+                f"🏢 Офис: *{office}*\n"
+                f"💵 Сумма пополнения: *{fmt_rub(rub_amount)}*\n"
+                f"🪙 Получите USDT: *{usdt_amount:.6f} USDT*\n"
+                f"📊 Курс покупки: *{fmt_rub(rates['buy_price'])}*\n\n"
+                f"Подтвердить заявку?"
+            )
+        else:
+            calculation_text = (
+                f"💸 *Расчет заявки на вывод:*\n\n"
+                f"🏢 Офис: *{office}*\n"
+                f"🪙 Количество USDT: *{usdt_amount:.6f} USDT*\n"
+                # f"💵 Получите рублей: *{fmt_rub(rub_amount)}*\n"
+                # f"📊 Курс продажи: *{fmt_rub(rates['sell_price'])}*\n\n"
+                f"Подтвердить заявку?"
+            )
+        
         await safe_send_message(
             user_id,
-            "✅ Ваша заявка отправлена! Менеджер получил уведомление.",
-            reply_markup=kb_user
+            calculation_text,
+            parse_mode="Markdown",
+            reply_markup=kb_confirm
         )
-
-        last_submission[user_id] = now
-        user_state.pop(user_id, None)
         return
 
     await safe_send_message(user_id, "Введите /start для начала работы.")
