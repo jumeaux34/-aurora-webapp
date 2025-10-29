@@ -17398,3 +17398,586 @@ telegram.error.NetworkError: httpx.ConnectError:
 
 2025-10-27 15:44:54,593 | ERROR | ABCEX HTTP 401: Authorization header is missing
 
+2025-10-27 17:29:52,990 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:00,174 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:07,351 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:14,515 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:21,693 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:28,868 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:36,055 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:43,230 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:50,395 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:30:57,569 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:31:04,733 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 577, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:40:04,554 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 585, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-27 17:40:11,733 | ERROR | Ошибка polling: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 585, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-10-29 11:07:54,732 | ERROR | Ошибка polling: Timed out
+Traceback (most recent call last):
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Равиль\Desktop\bulat alkash\-aurora-webapp\bot.py", line 665, in main
+    updates = await bot.get_updates(offset=offset, timeout=30)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\Равиль\AppData\Roaming\Python\Python313\site-packages\telegram\request\_httpxrequest.py", line 285, in do_request
+    raise TimedOut from err
+telegram.error.TimedOut: Timed out

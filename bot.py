@@ -498,8 +498,8 @@ async def handle_update(update: Update):
         suffix = " (онлайн)" if source == "online" else " (по последнему сохранённому курсу)"
         await safe_send_message(
             user_id,
-            f"💱 *USDT/RUB Курсы:*{suffix}\n\n"
-            f"🟢 *Покупка USDT:* {fmt_rub(rates['buy_price'])}\n",
+            f"💱 *RUB/USDT Курсы:*{suffix}\n\n"
+            f"🟢 *Продажа USDT:* {fmt_rub(rates['buy_price'])}\n",  
             parse_mode="Markdown",
         )
         return
